@@ -1,0 +1,17 @@
+{
+	"name": "Kopia",
+	"id": "kopia",
+	"packaging_format": 1,
+	"description": {
+		"en": "Fast and Secure Open-Source Backup Software"
+	},
+	"url": "https://kopia.io/",
+	"version": "0.01",
+	"license": "free",
+	"maintainer": {
+		"name": "clexanis",
+	},
+	"requirements": {
+		"yunohost": ">= 2.0.0"
+	}
+}
