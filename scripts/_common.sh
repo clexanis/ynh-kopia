@@ -4,7 +4,7 @@
 # COMMON VARIABLES
 #=================================================
 # App package root directory should be the parent folder
-pkp_dependencies="wget"
+pkg_dependencies="wget"
 
 # Install Kopia with apt repo
 install_kopia_with_repo () {
