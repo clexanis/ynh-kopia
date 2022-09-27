@@ -9,7 +9,7 @@
 	"version": "0.01",
 	"license": "free",
 	"maintainer": {
-		"name": "clexanis",
+		"name": "clexanis"
 	},
 	"requirements": {
 		"yunohost": ">= 2.0.0"
