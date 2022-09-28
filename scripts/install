@@ -1,12 +1,14 @@
-#!/bin/bash
+#!/bin/bash 
+: # Fix for shellcheck to work only on block instead on the whole file
 
 #=================================================
 # GENERIC START
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
-
+# shellcheck source=scripts/_common.sh
 source _common.sh
+# shellcheck source=/dev/null
 source /usr/share/yunohost/helpers
 
 #=================================================

@@ -1,12 +1,14 @@
 #!/bin/bash
+: # Fix for shellcheck to work only on block instead on the whole file
 
 #=================================================
 # GENERIC START
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
-
+# shellcheck source=scripts/_common.sh
 source _common.sh
+# shellcheck source=/dev/null
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -30,7 +32,7 @@ fi
 # REMOVE APP 
 #=================================================
 # Remove kopia if we are removing the last kopia app on the system
-if [ "$(yunohost app list | grep "id: kopia" | wc -l)" == "1" ] ; then 
+if [ "$(yunohost app list | grep -c "id: kopia")" == "1" ] ; then 
     uninstall_kopia_with_repo
 fi
 
@@ -47,7 +49,7 @@ ynh_secure_remove --file="$final_path"
 #=================================================
 ynh_script_progression --message="Removing dependencies..." --weight=1
 
-# Remove metapackage and its dependencies
+# Remove meta-package and its dependencies
 ynh_remove_app_dependencies
 
 #=================================================

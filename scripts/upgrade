@@ -1,11 +1,14 @@
 #!/bin/bash
+: # Fix for shellcheck to work only on block instead on the whole file
 
 #=================================================
 # GENERIC START
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
+# shellcheck source=scripts/_common.sh
 source _common.sh
+# shellcheck source=/dev/null
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -18,7 +21,7 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 #=================================================
 # CHECK VERSION
 #=================================================
-upgrade_type=$(ynh_check_app_version_changed)
+# upgrade_type=$(ynh_check_app_version_changed)
 
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
