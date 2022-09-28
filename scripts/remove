@@ -1,12 +1,14 @@
 #!/bin/bash
+: # Fix for shellcheck to work only on block instead on the whole file
 
 #=================================================
 # GENERIC START
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
-
+# shellcheck source=scripts/_common.sh
 source _common.sh
+# shellcheck source=/dev/null
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -14,23 +16,23 @@ source /usr/share/yunohost/helpers
 #=================================================
 ynh_script_progression --message="Loading installation settings..." --weight=1
 app=$YNH_APP_INSTANCE_NAME
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+final_path=$(ynh_app_setting_get --app="$app" --key=final_path)
 
 #=================================================
 # REMOVE SERVICE INTEGRATION IN YUNOHOST
 #=================================================
 # Remove the service from the list of services known by YunoHost (added from `yunohost service add`)
-if ynh_exec_warn_less yunohost service status $app >/dev/null
+if ynh_exec_warn_less yunohost service status "$app" >/dev/null
 then
 	ynh_script_progression --message="Removing $app service integration..."
-	yunohost service remove $app
+	yunohost service remove "$app"
 fi
 
 #=================================================
 # REMOVE APP 
 #=================================================
 # Remove kopia if we are removing the last kopia app on the system
-if [ "$(yunohost app list | grep "id: kopia" | wc -l)" == "1" ] ; then 
+if [ "$(yunohost app list | grep -c "id: kopia")" == "1" ] ; then 
     uninstall_kopia_with_repo
 fi
 
@@ -47,13 +49,13 @@ ynh_secure_remove --file="$final_path"
 #=================================================
 ynh_script_progression --message="Removing dependencies..." --weight=1
 
-# Remove metapackage and its dependencies
+# Remove meta-package and its dependencies
 ynh_remove_app_dependencies
 
 #=================================================
 # STOP AND REMOVE SERVICE
 #=================================================
-systemctl disable --now $app.timer --quiet
+systemctl disable --now "$app.timer" --quiet
 ynh_remove_systemd_config
 ynh_secure_remove "/etc/systemd/system/$app.timer"
 ynh_secure_remove "/etc/systemd/system/$app.service"
@@ -62,7 +64,7 @@ ynh_secure_remove "/etc/systemd/system/$app.service"
 # REMOVE DEDICATED USER
 #=================================================
 ynh_script_progression --message="Removing the dedicated system user..." --weight=1
-ynh_system_user_delete --username=$app
+ynh_system_user_delete --username="$app"
 
 #=================================================
 # END OF SCRIPT
