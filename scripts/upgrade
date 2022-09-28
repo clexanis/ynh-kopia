@@ -16,7 +16,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 ynh_script_progression --message="Loading installation settings..." --weight=1
 app=$YNH_APP_INSTANCE_NAME
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+final_path=$(ynh_app_setting_get --app="$app" --key=final_path)
 
 #=================================================
 # CHECK VERSION
@@ -43,7 +43,7 @@ ynh_abort_if_errors
 # STOP SYSTEMD SERVICE
 #=================================================
 ynh_script_progression --message="Stopping a systemd service..." --weight=1
-nh_systemd_action --service_name=$app.timer --action="stop" --log_path="/var/log/$app/$app.log"
+nh_systemd_action --service_name="$app.timer" --action="stop" --log_path="/var/log/$app/$app.log"
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -55,7 +55,7 @@ nh_systemd_action --service_name=$app.timer --action="stop" --log_path="/var/log
 # CREATE DEDICATED USER
 #=================================================
 ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
-ynh_system_user_create --username=$app --home_dir="$final_path"
+ynh_system_user_create --username="$app" --home_dir="$final_path"
 
 
 #=================================================
@@ -76,7 +76,7 @@ apt-get upgrade -y kopia
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
 # Inactive services are ignored cause it's a timer
-yunohost service add $app --description="Deduplicating backup program" --test_status="systemctl show $app.service  -p ActiveState --value | grep -v failed"
+yunohost service add "$app" --description="Deduplicating backup program" --test_status="systemctl show $app.service  -p ActiveState --value | grep -v failed"
 
 #=================================================
 # END OF SCRIPT
