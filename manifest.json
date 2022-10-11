@@ -12,6 +12,6 @@
 		"name": "clexanis"
 	},
 	"requirements": {
-		"yunohost": ">= 2.0.0"
+		"yunohost": ">= 4.1.0"
 	}
 }
