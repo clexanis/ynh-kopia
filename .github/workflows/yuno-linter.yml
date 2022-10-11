@@ -1,0 +1,25 @@
+name: YunoHost apps package linter
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ '**' ]
+  workflow_dispatch:
+jobs:
+  run-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout package linter
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          repository: 'YunoHost/package_linter'
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          path: './package_linter/ynh-kopia'
+      - name: Setup python
+        uses: actions/setup-python@v4
+      - run: cd ./package_linter && python ./package_linter.py ynh-kopia
