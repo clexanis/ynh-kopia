@@ -1,0 +1,76 @@
+#!/bin/bash
+: # Fix for shellcheck to work only on block instead on the whole file
+
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+# shellcheck source=scripts/_common.sh
+source _common.sh
+# shellcheck source=/dev/null
+source /usr/share/yunohost/helpers
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+ynh_script_progression --message="Loading installation settings..." --weight=1
+app=$YNH_APP_INSTANCE_NAME
+final_path=$(ynh_app_setting_get --app="$app" --key=final_path)
+
+#=================================================
+# STANDARD REMOVE
+#=================================================
+# REMOVE SERVICE INTEGRATION IN YUNOHOST
+#=================================================
+# Remove the service from the list of services known by YunoHost (added from `yunohost service add`)
+if ynh_exec_warn_less yunohost service status "$app" >/dev/null
+then
+	ynh_script_progression --message="Removing $app service integration..." --weight=1
+	yunohost service remove "$app"
+fi
+
+#=================================================
+# STOP AND REMOVE SERVICE
+#=================================================
+ynh_script_progression --message="Stopping and removing the systemd service..." --weight=1
+ynh_systemd_action -n "$app.timer" -a "disable --now"
+ynh_remove_systemd_config
+#ynh_secure_remove "/etc/systemd/system/$app.timer"
+
+#=================================================
+# REMOVE APP MAIN DIR
+#=================================================
+ynh_script_progression --message="Removing app main directory..." --weight=1
+# Remove the app directory securely
+ynh_secure_remove --file="$final_path"
+
+#=================================================
+# REMOVE DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Removing dependencies..." --weight=1
+# Remove meta-package and its dependencies
+ynh_remove_app_dependencies
+
+#=================================================
+# SPECIFIC REMOVE
+#=================================================
+# REMOVE APP 
+#=================================================
+# Remove kopia if we are removing the last kopia app on the system
+if [ "$(yunohost app list | grep -c "id: kopia")" == "1" ] ; then 
+    uninstall_kopia_with_repo
+fi
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# REMOVE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Removing the dedicated system user..." --weight=1
+ynh_system_user_delete --username="$app"
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+ynh_script_progression --message="Removal of $app completed" --last
