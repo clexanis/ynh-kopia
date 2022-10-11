@@ -1,0 +1,95 @@
+#!/bin/bash
+: # Fix for shellcheck to work only on block instead on the whole file
+
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+# Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
+# shellcheck source=scripts/_common.sh
+source ../settings/scripts/_common.sh
+# shellcheck source=/dev/null
+source /usr/share/yunohost/helpers
+
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+ynh_clean_setup () {
+	### Remove this function if there's nothing to clean before calling the remove script.
+	true
+}
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+ynh_script_progression --message="Loading installation settings..." --weight=1
+app=$YNH_APP_INSTANCE_NAME
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+
+#=================================================
+# CHECK IF THE APP CAN BE RESTORED
+#=================================================
+ynh_script_progression --message="Validating restoration parameters..." --weight=1
+test ! -d $final_path || ynh_die --message="There is already a directory: $final_path"
+
+#=================================================
+# STANDARD RESTORATION STEPS
+#=================================================
+# RECREATE THE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Recreating the dedicated system user..." --weight=1
+# Create the dedicated user (if not existing)
+ynh_system_user_create --username=$app --home_dir="$final_path"
+
+#=================================================
+# RESTORE THE APP MAIN DIR
+#=================================================
+ynh_script_progression --message="Restoring the app main directory..." --weight=1
+ynh_restore_file --origin_path="$final_path"
+
+# FIXME: this should be managed by the core in the future
+# Here, as a packager, you may have to tweak the ownership/permissions
+# such that the appropriate users (e.g. maybe www-data) can access
+# files in some cases.
+# But FOR THE LOVE OF GOD, do not allow r/x for "others" on the entire folder -
+# this will be treated as a security issue.
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:www-data "$final_path"
+
+#=================================================
+# SPECIFIC RESTORATION
+#=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Reinstalling dependencies..." --weight=1
+install_kopia_with_repo
+
+#=================================================
+# RESTORE SYSTEMD
+#=================================================
+ynh_script_progression --message="Restoring the systemd configuration..." --weight=1
+ynh_restore_file --origin_path="/etc/systemd/system/$app.service"
+ynh_restore_file --origin_path="/etc/systemd/system/$app.timer"
+# Disable the service, this is to prevent the service from being triggered at boot time
+ynh_systemd_action -n "$app.service" -a "disable" 
+
+#=================================================
+# INTEGRATE SERVICE IN YUNOHOST
+#=================================================
+ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
+yunohost service add "$app" --description="Deduplicating backup program" --test_status="systemctl show $app.service  -p ActiveState --value | grep -v failed"
+
+#=================================================
+# START SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Starting a systemd service..." --weight=1
+ynh_systemd_action -n "$app.timer" -a "enable --now"
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+ynh_script_progression --message="Restoration completed for $app" --last
