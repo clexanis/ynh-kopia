@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          path: './package_linter/ynh-kopia'
+          path: './ynh-kopia'
       - name: Setup python
         uses: actions/setup-python@v4
-      - run: cd ./package_linter && python ./package_linter.py ynh-kopia
+      - run: python ./package_linter.py ynh-kopia
