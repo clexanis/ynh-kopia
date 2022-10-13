@@ -13,5 +13,6 @@
 	},
 	"requirements": {
 		"yunohost": ">= 4.1.0"
-	}
+	},
+	"multi_instance": true
 }
